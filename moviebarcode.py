@@ -78,19 +78,23 @@ def combine_frames():
 def get_metadata(filename):
     command = [
         'ffprobe',
-        '-show_entries', 'stream=duration',
+        '-show_entries', 'stream=duration:format=duration',
         '-of', 'json',
         '-v', 'error',
         filename
     ]
-    j = json.loads(subprocess.check_output(command))['streams']
+    j = json.loads(subprocess.check_output(command))
 
     metadata = {}
     for key in ['duration']:
-        for dict in j:
+        for dict in j['streams']:
             if key in dict:
                 metadata[key] = dict[key]
                 break
+
+    if 'duration' not in metadata:
+        metadata['duration'] = j['format']['duration']
+
     metadata.update({
         'duration': float(metadata['duration'])
     })
