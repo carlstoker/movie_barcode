@@ -1,17 +1,9 @@
 #!/usr/bin/env python3
-import json, progressbar, subprocess
+import json, progressbar, subprocess, argparse
 from os.path import splitext, basename, expanduser
 from shutil import move
 from sys import argv
 from tempfile import TemporaryDirectory
-
-settings = {
-    'width': 5000,
-    'height': 1875,
-    'directory': '~/Pictures',
-    'smooth': True
-}
-settings['directory'] = expanduser(settings['directory'])
 
 def process_video():
     global settings
@@ -29,7 +21,7 @@ def process_video():
 def extract_frames():
     global settings
 
-    print('Extracting {width} frames to {temp} with a {interval:.02f} second interval'.format(**settings))
+    print('Extracting {width} frames from {filename} to {temp} with a {interval:.02f} second interval'.format(**settings))
     for i in progressbar.progressbar(range(settings['width'])):
         capture_time = settings['start'] + ((i + 1) * settings['interval'])
 
@@ -37,7 +29,7 @@ def extract_frames():
             'ffmpeg',
             '-ss', str(capture_time),
             '-i', '{filename}'.format(**settings),
-            '-vf', 'scale=1:{height}'.format(**settings),
+            '-vf', 'format=yuvj444p,scale=1:{height}'.format(**settings),
             '-vframes', '1',
             '-y',
             '-loglevel', 'fatal',
@@ -62,7 +54,7 @@ def resize_frames(height):
 def combine_frames():
     global settings
 
-    print('Combining frames into montage {directory}/{basename}.png'.format(**settings))
+    print('Combining frames into montage {output}/{basename}.png'.format(**settings))
     command = [
         'montage',
         '-geometry', '+0+0',
@@ -71,7 +63,7 @@ def combine_frames():
         'montage.png'.format(**settings)
     ]
     subprocess.call(command, cwd=settings['temp'])
-    move('{temp}/montage.png'.format(**settings), '{directory}/{basename}.png'.format(**settings))
+    move('{temp}/montage.png'.format(**settings), '{output}/{basename}.png'.format(**settings))
 
     return None
 
@@ -102,24 +94,27 @@ def get_metadata(filename):
 
 
 if __name__ == "__main__":
-    print('Creating barcodes for:\n{}'.format('\n'.join(argv[1:])))
+    parser = argparse.ArgumentParser(description='Generate cinegrid for the FILEs')
+    parser.add_argument('FILE', nargs='+')
+    parser.add_argument('--duration', help='duration of capture (in seconds) (default: %(default)s)', default=None, metavar='DURATION'),
+    parser.add_argument('--height', help='barcode height (default: %(default)s)', default=1875, metavar='PIXELS', type=int)
+    parser.add_argument('--output', help='output directory (default: %(default)s)', default='~/Pictures', metavar='DIR')
+    parser.add_argument('--smooth', help='enable/disable single color vertical lines (default: %(default)s)', default=True, action='store_true')
+    parser.add_argument('--start', help='start point (in seconds) (default: %(default)s)', default=0, metavar='START')
+    parser.add_argument('--width', help='barcode width/number of frames (default: %(default)s)', default=5000, metavar='PIXELS', type=int)
+    parser.add_argument('--version', action='version', version='%(prog)s 1.0alpha')
 
-    for filename in argv[1:]:
+    settings = parser.parse_args().__dict__
+    settings['output'] = expanduser(settings['output'])
+
+    for filename in settings['FILE']:
         settings.update({'filename': filename, 'basename': splitext(basename(filename))[0]})
         metadata = get_metadata(filename)
-        print('Creating barcode for {}'.format(settings['filename']))
-
-        try:
-            settings['start'] = int(input("Enter timecode (in seconds) of the start of the video: "))
-        except:
-            settings['start'] = 0
-
-        try:
-            settings['duration'] = float(input("Enter duration (in seconds) of the video to capture: "))
-        except:
-            settings['duration'] = metadata['duration']
 
         #Duration is capped to prevent missing frames at the end of the file
-        settings['duration'] = min(settings['duration'], (metadata['duration'] * 0.95) - settings['start'])
+        if settings['duration'] is None:
+            settings['duration'] = (metadata['duration'] * 0.95) - settings['start']
+        else:
+            settings['duration'] = min(settings['duration'], (metadata['duration'] * 0.95) - settings['start'])
 
         process_video()
