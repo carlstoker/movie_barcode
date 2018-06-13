@@ -22,7 +22,7 @@ def extract_frames():
     scale = []
     if not settings['rough']:
         scale.append('scale=1:1')
-    scale.append('scale=1:{height}'.format(**settings))
+    scale.append('scale={framewidth}:{height}'.format(**settings))
 
     for i in progressbar.progressbar(range(settings['width'])):
         capture_time = settings['start'] + ((i + 1) * settings['interval'])
@@ -37,7 +37,6 @@ def extract_frames():
             '-loglevel', 'fatal',
             '{}/frame{:05d}.jpg'.format(settings['temp'], i)]
         subprocess.call(command)
-    print(command)
 
     return None
 
@@ -87,6 +86,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Generate cinegrid for the FILEs')
     parser.add_argument('FILE', nargs='+')
     parser.add_argument('--duration', help='duration of capture (in seconds) (default: %(default)s)', default=None, metavar='DURATION'),
+    parser.add_argument('--framewidth', help='width for each frame (default: %(default)s)', default=1, metavar='PIXELS', type=int)
     parser.add_argument('--height', help='barcode height (default: %(default)s)', default=1875, metavar='PIXELS', type=int)
     parser.add_argument('--output', help='output directory (default: %(default)s)', default='~/Pictures', metavar='DIR')
     parser.add_argument('--rough', help='disable single color vertical lines (default: %(default)s)', default=False, action='store_true')
