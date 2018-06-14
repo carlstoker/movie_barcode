@@ -15,6 +15,7 @@ def process_video(filename):
     if settings['duration'] is None:
         settings['duration'] = (metadata['duration'] * 0.95) - settings['start']
     else:
+        print(type(settings['duration']))
         settings['duration'] = min(settings['duration'], (metadata['duration'] * 0.95) - settings['start'])
 
     with TemporaryDirectory() as settings['temp']:
@@ -94,12 +95,12 @@ def get_metadata(filename):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Generate barcode for the FILE(s)')
     parser.add_argument('FILE', nargs='+')
-    parser.add_argument('--duration', help='duration of capture (in seconds) (default: %(default)s)', default=None, metavar='DURATION'),
+    parser.add_argument('--duration', help='duration of capture (in seconds) (default: %(default)s)', default=None, metavar='DURATION', type=float),
     parser.add_argument('--framewidth', help='width for each frame (default: %(default)s)', default=1, metavar='PIXELS', type=int)
     parser.add_argument('--height', help='height of barcode (default: %(default)s)', default=1875, metavar='PIXELS', type=int)
     parser.add_argument('--output', help='output directory (default: %(default)s)', default='~/Pictures', metavar='DIR')
     parser.add_argument('--rough', help='disable single color vertical lines (default: %(default)s)', default=False, action='store_true')
-    parser.add_argument('--start', help='start point (in seconds) (default: %(default)s)', default=0, metavar='START')
+    parser.add_argument('--start', help='start point (in seconds) (default: %(default)s)', default=0, metavar='START', type=float)
     parser.add_argument('--width', help='width of barcode (default: %(default)s)', default=5000, metavar='PIXELS', type=int)
     parser.add_argument('--version', action='version', version='%(prog)s 1.0alpha')
 
