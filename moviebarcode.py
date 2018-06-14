@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import json, progressbar, subprocess, argparse
-from os.path import splitext, basename, expanduser
+from os.path import splitext, basename, expanduser, isfile
 from shutil import move
 from sys import argv
 from tempfile import TemporaryDirectory
@@ -9,6 +9,8 @@ def process_video(filename):
     global settings
 
     settings.update({'filename': filename, 'basename': splitext(basename(filename))[0]})
+    settings['barcode_filename'] = '{output}/{basename}.png'.format(**settings)
+
     metadata = get_metadata(filename)
 
     #Prevent missing frames at the end of the file by capping duration to 95% of video duration
@@ -17,11 +19,15 @@ def process_video(filename):
     else:
         settings['duration'] = min(settings['duration'], (metadata['duration'] * 0.95) - settings['start'])
 
+    if not settings['overwrite'] and isfile(settings['barcode_filename']):
+        print('Barcode exists. Skipping {filename}'.format(**settings))
+        return False
+
     with TemporaryDirectory() as settings['temp']:
         extract_frames()
         combine_frames()
 
-    return None
+    return True
 
 def extract_frames():
     global settings
@@ -98,6 +104,7 @@ if __name__ == "__main__":
     parser.add_argument('--framewidth', help='width for each frame (default: %(default)s)', default=1, metavar='PIXELS', type=int)
     parser.add_argument('--height', help='height of barcode (default: %(default)s)', default=1875, metavar='PIXELS', type=int)
     parser.add_argument('--output', help='output directory (default: %(default)s)', default='~/Pictures', metavar='DIR')
+    parser.add_argument('--overwrite', help='overwrite existing cinegrid (default: %(default)s)', default=False, action='store_true')
     parser.add_argument('--rough', help='disable single color vertical lines (default: %(default)s)', default=False, action='store_true')
     parser.add_argument('--start', help='start point (in seconds) (default: %(default)s)', default=0, metavar='START', type=float)
     parser.add_argument('--width', help='width of barcode (default: %(default)s)', default=5000, metavar='PIXELS', type=int)
