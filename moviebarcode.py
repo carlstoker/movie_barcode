@@ -83,7 +83,7 @@ def get_metadata(filename):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Generate cinegrid for the FILEs')
+    parser = argparse.ArgumentParser(description='Generate barcode for the FILE(s)')
     parser.add_argument('FILE', nargs='+')
     parser.add_argument('--duration', help='duration of capture (in seconds) (default: %(default)s)', default=None, metavar='DURATION'),
     parser.add_argument('--framewidth', help='width for each frame (default: %(default)s)', default=1, metavar='PIXELS', type=int)
