@@ -15,7 +15,6 @@ def process_video(filename):
     if settings['duration'] is None:
         settings['duration'] = (metadata['duration'] * 0.95) - settings['start']
     else:
-        print(type(settings['duration']))
         settings['duration'] = min(settings['duration'], (metadata['duration'] * 0.95) - settings['start'])
 
     with TemporaryDirectory() as settings['temp']:
