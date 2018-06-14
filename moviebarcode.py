@@ -23,8 +23,9 @@ def extract_frames():
     if not settings['rough']:
         scale.append('scale=1:1')
     scale.append('scale={framewidth}:{height}'.format(**settings))
+    frames = int(settings['width'] / settings['framewidth'])
 
-    for i in progressbar.progressbar(range(settings['width'])):
+    for i in progressbar.progressbar(range(frames)):
         capture_time = settings['start'] + ((i + 1) * settings['interval'])
 
         command = [
