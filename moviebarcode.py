@@ -5,27 +5,37 @@ from shutil import move
 from sys import argv
 from tempfile import TemporaryDirectory
 
-def process_video():
+def process_video(filename):
     global settings
-    # Calculate interval based on duration / number of pixels
-    settings['interval'] = (settings['duration'] / settings['width'])
+
+    settings.update({'filename': filename, 'basename': splitext(basename(filename))[0]})
+    metadata = get_metadata(filename)
+
+    #Prevent missing frames at the end of the file by capping duration to 95% of video duration
+    if settings['duration'] is None:
+        settings['duration'] = (metadata['duration'] * 0.95) - settings['start']
+    else:
+        settings['duration'] = min(settings['duration'], (metadata['duration'] * 0.95) - settings['start'])
 
     with TemporaryDirectory() as settings['temp']:
         extract_frames()
         combine_frames()
+
     return None
 
 def extract_frames():
     global settings
 
-    print('Extracting {width} frames from {filename} to {temp} with a {interval:.02f} second interval'.format(**settings))
     scale = []
     if not settings['rough']:
         scale.append('scale=1:1')
     scale.append('scale={framewidth}:{height}'.format(**settings))
-    frames = int(settings['width'] / settings['framewidth'])
+    settings['frames'] = int(settings['width'] / settings['framewidth'])
 
-    for i in progressbar.progressbar(range(frames)):
+    settings['interval'] = (settings['duration'] / settings['frames'])
+
+    print('Extracting {frames} frames from {filename} to {temp} with a {interval:.02f} second interval'.format(**settings))
+    for i in progressbar.progressbar(range(settings['frames'])):
         capture_time = settings['start'] + ((i + 1) * settings['interval'])
 
         command = [
@@ -77,9 +87,7 @@ def get_metadata(filename):
     if 'duration' not in metadata:
         metadata['duration'] = j['format']['duration']
 
-    metadata.update({
-        'duration': float(metadata['duration'])
-    })
+    metadata['duration'] = float(metadata['duration'])
     return metadata
 
 
@@ -99,13 +107,4 @@ if __name__ == "__main__":
     settings['output'] = expanduser(settings['output'])
 
     for filename in settings['FILE']:
-        settings.update({'filename': filename, 'basename': splitext(basename(filename))[0]})
-        metadata = get_metadata(filename)
-
-        #Duration is capped to prevent missing frames at the end of the file
-        if settings['duration'] is None:
-            settings['duration'] = (metadata['duration'] * 0.95) - settings['start']
-        else:
-            settings['duration'] = min(settings['duration'], (metadata['duration'] * 0.95) - settings['start'])
-
-        process_video()
+        process_video(filename)
