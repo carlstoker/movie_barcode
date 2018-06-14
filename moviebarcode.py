@@ -35,7 +35,7 @@ def extract_frames():
             '-vframes', '1',
             '-y',
             '-loglevel', 'fatal',
-            '{}/frame{:05d}.jpg'.format(settings['temp'], i)]
+            '{}/frame{:05d}.png'.format(settings['temp'], i)]
         subprocess.call(command)
 
     return None
@@ -48,7 +48,7 @@ def combine_frames():
         'montage',
         '-geometry', '+0+0',
         '-tile', 'x1',
-        '*.jpg',
+        'frame*.png',
         'montage.png'.format(**settings)
     ]
     subprocess.call(command, cwd=settings['temp'])
