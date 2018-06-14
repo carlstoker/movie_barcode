@@ -8,9 +8,6 @@ from tempfile import TemporaryDirectory
 def process_video(filename):
     global settings
 
-    settings.update({'filename': filename, 'basename': splitext(basename(filename))[0]})
-    settings['barcode_filename'] = '{output}/{basename}.png'.format(**settings)
-
     metadata = get_metadata(filename)
 
     #Prevent missing frames at the end of the file by capping duration to 95% of video duration
@@ -18,6 +15,16 @@ def process_video(filename):
         settings['duration'] = (metadata['duration'] * 0.95) - settings['start']
     else:
         settings['duration'] = min(settings['duration'], (metadata['duration'] * 0.95) - settings['start'])
+
+    settings.update({
+        'filename': filename,
+        'basename': splitext(basename(filename))[0],
+        'frames': int(settings['width'] / settings['framewidth'])
+    })
+    settings.update({
+        'interval': settings['duration'] / settings['frames'],
+        'barcode_filename': '{output}/{basename}-{framewidth}x{frames}barcode.png'.format(**settings)
+    })
 
     if not settings['overwrite'] and isfile(settings['barcode_filename']):
         print('Barcode exists. Skipping {filename}'.format(**settings))
@@ -36,9 +43,6 @@ def extract_frames():
     if not settings['rough']:
         scale.append('scale=1:1')
     scale.append('scale={framewidth}:{height}'.format(**settings))
-    settings['frames'] = int(settings['width'] / settings['framewidth'])
-
-    settings['interval'] = (settings['duration'] / settings['frames'])
 
     print('Extracting {frames} frames from {filename} to {temp} with a {interval:.02f} second interval'.format(**settings))
     for i in progressbar.progressbar(range(settings['frames'])):
@@ -69,7 +73,7 @@ def combine_frames():
         'montage.png'.format(**settings)
     ]
     subprocess.call(command, cwd=settings['temp'])
-    move('{temp}/montage.png'.format(**settings), '{output}/{basename}.png'.format(**settings))
+    move('{temp}/montage.png'.format(**settings), '{barcode_filename}'.format(**settings))
 
     return None
 
