@@ -11,7 +11,7 @@ def process_video(filename):
     metadata = get_metadata(filename)
 
     #Prevent missing frames at the end of the file by capping duration to 95% of video duration
-    if settings['duration'] is None:
+    if settings['duration'] == 0:
         settings['duration'] = (metadata['duration'] * 0.95) - settings['start']
     else:
         settings['duration'] = min(settings['duration'], (metadata['duration'] * 0.95) - settings['start'])
@@ -104,9 +104,10 @@ def get_metadata(filename):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Generate barcode for the FILE(s)')
     parser.add_argument('FILE', nargs='+')
-    parser.add_argument('--duration', help='duration of capture (in seconds) (default: %(default)s)', default=None, metavar='DURATION', type=float),
+    parser.add_argument('--duration', help='duration of capture (in seconds)', default=0, metavar='DURATION', type=float),
     parser.add_argument('--framewidth', help='width for each frame (default: %(default)s)', default=1, metavar='PIXELS', type=int)
     parser.add_argument('--height', help='height of barcode (default: %(default)s)', default=1875, metavar='PIXELS', type=int)
+    parser.add_argument('--interactive', help='prompt for each file\'s new title (default: %(default)s)', default=False, action='store_true'),
     parser.add_argument('--output', help='output directory (default: %(default)s)', default='~/Pictures', metavar='DIR')
     parser.add_argument('--overwrite', help='overwrite existing cinegrid (default: %(default)s)', default=False, action='store_true')
     parser.add_argument('--prompt', help='prompt before exiting (default: %(default)s)', default=False, action='store_true'),
@@ -117,6 +118,14 @@ if __name__ == "__main__":
 
     settings = parser.parse_args().__dict__
     settings['output'] = expanduser(settings['output'])
+    if settings['interactive']:
+        settings.update({
+            'start': float(input('Enter start time (in seconds) [0]: ') or 0),
+            'duration': float(input('Enter duration (in seconds) [0]: ') or 0),
+            'height': int(input('Enter height (in pixels) [1875]: ') or 1875),
+            'width': int(input('Enter width (in pixels) [5000]: ') or 5000),
+            'framewidth': int(input('Enter frame width (in pixels) [1]: ') or 1)
+        })
 
     for filename in settings['FILE']:
         process_video(filename)
