@@ -109,6 +109,7 @@ if __name__ == "__main__":
     parser.add_argument('--height', help='height of barcode (default: %(default)s)', default=1875, metavar='PIXELS', type=int)
     parser.add_argument('--output', help='output directory (default: %(default)s)', default='~/Pictures', metavar='DIR')
     parser.add_argument('--overwrite', help='overwrite existing cinegrid (default: %(default)s)', default=False, action='store_true')
+    parser.add_argument('--prompt', help='prompt before exiting (default: %(default)s)', default=False, action='store_true'),
     parser.add_argument('--rough', help='disable single color vertical lines (default: %(default)s)', default=False, action='store_true')
     parser.add_argument('--start', help='start point (in seconds) (default: %(default)s)', default=0, metavar='START', type=float)
     parser.add_argument('--width', help='width of barcode (default: %(default)s)', default=5000, metavar='PIXELS', type=int)
@@ -119,3 +120,5 @@ if __name__ == "__main__":
 
     for filename in settings['FILE']:
         process_video(filename)
+    if settings['prompt']:
+        input('Press Enter to continue.')
