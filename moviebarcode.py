@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-import json, progressbar, subprocess, argparse
-from os.path import splitext, basename, expanduser, isfile
-from shutil import move
-from sys import argv
+import argparse
+import json
+import os
+import shutil
+import subprocess
 from tempfile import TemporaryDirectory
+import progressbar
 
 def process_video(filename):
     global settings
@@ -14,19 +16,23 @@ def process_video(filename):
     if settings['duration'] == 0:
         settings['duration'] = (metadata['duration'] * 0.95) - settings['start']
     else:
-        settings['duration'] = min(settings['duration'], (metadata['duration'] * 0.95) - settings['start'])
+        settings['duration'] = min(
+            settings['duration'],
+            (metadata['duration'] * 0.95) - settings['start']
+        )
 
     settings.update({
         'filename': filename,
-        'basename': splitext(basename(filename))[0],
+        'basename': os.path.splitext(os.path.basename(filename))[0],
         'frames': int(settings['width'] / settings['framewidth'])
     })
     settings.update({
         'interval': settings['duration'] / settings['frames'],
-        'barcode_filename': '{output}/{basename}-{framewidth}x{frames}barcode.png'.format(**settings)
+        'barcode_filename':
+            '{output}/{basename}-{framewidth}x{frames}barcode.png'.format(**settings)
     })
 
-    if not settings['overwrite'] and isfile(settings['barcode_filename']):
+    if not settings['overwrite'] and os.path.isfile(settings['barcode_filename']):
         print('Barcode exists. Skipping {filename}'.format(**settings))
         return False
 
@@ -73,7 +79,7 @@ def combine_frames():
         'montage.png'.format(**settings)
     ]
     subprocess.call(command, cwd=settings['temp'])
-    move('{temp}/montage.png'.format(**settings), '{barcode_filename}'.format(**settings))
+    shutil.move('{temp}/montage.png'.format(**settings), '{barcode_filename}'.format(**settings))
 
     return None
 
@@ -104,20 +110,32 @@ def get_metadata(filename):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Generate barcode for the FILE(s)')
     parser.add_argument('FILE', nargs='+')
-    parser.add_argument('--duration', help='duration of capture (in seconds)', default=0, metavar='DURATION', type=float),
-    parser.add_argument('--framewidth', help='width for each frame (default: %(default)s)', default=1, metavar='PIXELS', type=int)
-    parser.add_argument('--height', help='height of barcode (default: %(default)s)', default=1875, metavar='PIXELS', type=int)
-    parser.add_argument('--interactive', help='prompt for each file\'s new title (default: %(default)s)', default=False, action='store_true'),
-    parser.add_argument('--output', help='output directory (default: %(default)s)', default='~/Pictures', metavar='DIR')
-    parser.add_argument('--overwrite', help='overwrite existing cinegrid (default: %(default)s)', default=False, action='store_true')
-    parser.add_argument('--prompt', help='prompt before exiting (default: %(default)s)', default=False, action='store_true'),
-    parser.add_argument('--rough', help='disable single color vertical lines (default: %(default)s)', default=False, action='store_true')
-    parser.add_argument('--start', help='start point (in seconds) (default: %(default)s)', default=0, metavar='START', type=float)
-    parser.add_argument('--width', help='width of barcode (default: %(default)s)', default=5000, metavar='PIXELS', type=int)
+    parser.add_argument('--duration', help='duration of capture (in seconds)',
+                        default=0, metavar='DURATION', type=float)
+    parser.add_argument('--framewidth', help='width for each frame (default: %(default)s)',
+                        default=1, metavar='PIXELS', type=int)
+    parser.add_argument('--height', help='height of barcode (default: %(default)s)',
+                        default=1875, metavar='PIXELS', type=int)
+    parser.add_argument('--interactive',
+                        help='prompt for each file\'s new title (default: %(default)s)',
+                        default=False, action='store_true')
+    parser.add_argument('--output', help='output directory (default: %(default)s)',
+                        default='~/Pictures', metavar='DIR')
+    parser.add_argument('--overwrite', help='overwrite existing cinegrid (default: %(default)s)',
+                        default=False, action='store_true')
+    parser.add_argument('--prompt',
+                        help='prompt before exiting (default: %(default)s)',
+                        default=False, action='store_true')
+    parser.add_argument('--rough', help='disable single color vertical lines (default: %(default)s)',
+                        default=False, action='store_true')
+    parser.add_argument('--start', help='start point (in seconds) (default: %(default)s)',
+                        default=0, metavar='START', type=float)
+    parser.add_argument('--width', help='width of barcode (default: %(default)s)',
+                        default=5000, metavar='PIXELS', type=int)
     parser.add_argument('--version', action='version', version='%(prog)s 1.0alpha')
 
     settings = parser.parse_args().__dict__
-    settings['output'] = expanduser(settings['output'])
+    settings['output'] = os.path.expanduser(settings['output'])
     if settings['interactive']:
         settings.update({
             'start': float(input('Enter start time (in seconds) [0]: ') or 0),
