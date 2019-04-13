@@ -8,7 +8,6 @@ from tempfile import TemporaryDirectory
 import progressbar
 
 def process_video(filename):
-    global SETTINGS
 
     metadata = get_metadata(filename, ['duration'])
 
@@ -43,7 +42,6 @@ def process_video(filename):
     return True
 
 def extract_frames():
-    global SETTINGS
 
     scale = []
     if not SETTINGS['rough']:
