@@ -38,7 +38,7 @@ def process_video(filename):
 
     with TemporaryDirectory() as SETTINGS['temp']:
         extract_frames()
-        combine_frames()
+        combine_frames(SETTINGS['temp'], SETTINGS['barcode_filename'])
 
     return True
 
@@ -67,19 +67,25 @@ def extract_frames():
 
     return None
 
-def combine_frames():
+def combine_frames(input_directory, output_filename):
+    """Combine individual frames into a montage.
+
+    Arguments:
+    input_directory -- input_directory with individual frames
+    output_filename -- filename for output file
+    """
     global SETTINGS
 
-    print('Combining frames into montage {output}/{basename}.png'.format(**SETTINGS))
+    print('Combining frames into montage {0}'.format(output_filename))
     command = [
         'montage',
         '-geometry', '+0+0',
         '-tile', 'x1',
         'frame*.png',
-        'montage.png'.format(**SETTINGS)
+        'montage.png'.format
     ]
-    subprocess.call(command, cwd=SETTINGS['temp'])
-    shutil.move('{temp}/montage.png'.format(**SETTINGS), '{barcode_filename}'.format(**SETTINGS))
+    subprocess.call(command, cwd=input_directory)
+    shutil.move('{0}/montage.png'.format(input_directory), output_filename)
 
     return None
 
