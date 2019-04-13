@@ -29,7 +29,7 @@ def process_video(filename):
     SETTINGS.update({
         'interval': SETTINGS['duration'] / SETTINGS['frames'],
         'barcode_filename':
-            '{output}/{basename}-{framewidth}x{frames}barcode.png'.format(**SETTINGS)
+            os.path.join(SETTINGS['output'], '{basename}-{framewidth}x{frames}barcode.png'.format(**SETTINGS))
     })
 
     if not SETTINGS['overwrite'] and os.path.isfile(SETTINGS['barcode_filename']):
@@ -74,17 +74,18 @@ def combine_frames(input_directory, output_filename):
     input_directory -- input_directory with individual frames
     output_filename -- filename for output file
     """
-    global SETTINGS
 
     print('Combining frames into montage {0}'.format(output_filename))
+
     command = [
         'montage',
         '-geometry', '+0+0',
         '-tile', 'x1',
         'frame*.png',
-        'montage.png'.format
+        'montage.png'
     ]
     subprocess.call(command, cwd=input_directory)
+
     shutil.move('{0}/montage.png'.format(input_directory), output_filename)
 
     return None
