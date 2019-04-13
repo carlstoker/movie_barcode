@@ -63,7 +63,8 @@ def extract_frames():
             '-vframes', '1',
             '-y',
             '-loglevel', 'fatal',
-            '{}/frame{:05d}.png'.format(SETTINGS['temp'], i)]
+            os.path.join(SETTINGS['temp'], 'frame{:05d}.png'.format(i))
+        ]
         subprocess.call(command)
 
     return None
@@ -88,7 +89,7 @@ def combine_frames(input_directory, output_filename):
     ]
     subprocess.call(command, cwd=input_directory)
 
-    shutil.move('{0}/montage.png'.format(input_directory), output_filename)
+    shutil.move(os.path.join(input_directory, 'montage.png'), output_filename)
 
     return None
 
