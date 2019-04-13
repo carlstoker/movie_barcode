@@ -90,11 +90,11 @@ def combine_frames(input_directory, output_filename):
 
     return None
 
-def get_metadata(fname, keys):
+def get_metadata(filename, keys):
     """Return metadata for filename
 
     Arguments:
-    fname -- filename to retrieve metadata from
+    filename -- filename to retrieve metadata from
     keys -- keys to look for and save
     """
     command = [
@@ -102,7 +102,7 @@ def get_metadata(fname, keys):
         '-show_entries', 'stream={0}:format={0}'.format(','.join(keys)),
         '-of', 'json',
         '-v', 'error',
-        fname
+        filename
     ]
     j = json.loads(subprocess.check_output(command))
 
@@ -159,7 +159,7 @@ if __name__ == "__main__":
             'framewidth': int(input('Enter frame width (in pixels) [1]: ') or 1)
         })
 
-    for filename in SETTINGS['FILE']:
-        process_video(filename)
+    for file in SETTINGS['FILE']:
+        process_video(file)
     if SETTINGS['prompt']:
         input('Press Enter to continue.')
