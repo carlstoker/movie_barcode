@@ -7,11 +7,12 @@ import subprocess
 from tempfile import TemporaryDirectory
 import progressbar
 
-def process_video(filename):
+
+def generate_barcode(filename):
 
     metadata = get_metadata(filename, ['duration'])
 
-    #Prevent missing frames at the end of the file by capping duration to 95% of video duration
+    # Prevent missing frames at the end of the file by capping duration to 95% of video duration
     if SETTINGS['duration'] == 0:
         SETTINGS['duration'] = (metadata['duration'] * 0.95) - SETTINGS['start']
     else:
@@ -28,7 +29,8 @@ def process_video(filename):
     SETTINGS.update({
         'interval': SETTINGS['duration'] / SETTINGS['frames'],
         'barcode_filename':
-            os.path.join(SETTINGS['output'], '{basename}-{framewidth}x{frames}barcode.png'.format(**SETTINGS))
+            os.path.join(SETTINGS['output'],
+                         '{basename}-{framewidth}x{frames}barcode.png'.format(**SETTINGS))
     })
 
     if not SETTINGS['overwrite'] and os.path.isfile(SETTINGS['barcode_filename']):
@@ -40,6 +42,7 @@ def process_video(filename):
         combine_frames(SETTINGS['temp'], SETTINGS['barcode_filename'])
 
     return True
+
 
 def extract_frames():
 
@@ -65,6 +68,7 @@ def extract_frames():
 
     return None
 
+
 def combine_frames(input_directory, output_filename):
     """Combine individual frames into a montage.
 
@@ -87,6 +91,7 @@ def combine_frames(input_directory, output_filename):
     shutil.move('{0}/montage.png'.format(input_directory), output_filename)
 
     return None
+
 
 def get_metadata(filename, keys):
     """Return metadata for filename
@@ -158,6 +163,6 @@ if __name__ == "__main__":
         })
 
     for file in SETTINGS['FILE']:
-        process_video(file)
+        generate_barcode(file)
     if SETTINGS['prompt']:
         input('Press Enter to continue.')
