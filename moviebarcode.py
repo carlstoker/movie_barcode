@@ -38,32 +38,45 @@ def generate_barcode(filename):
         return False
 
     with TemporaryDirectory() as SETTINGS['temp']:
-        extract_frames()
+        extract_frames(SETTINGS['filename'], SETTINGS['temp'], SETTINGS['start'], SETTINGS['interval'], SETTINGS['frames'], SETTINGS['framewidth'], SETTINGS['height'], SETTINGS['rough'])
         combine_frames(SETTINGS['temp'], SETTINGS['barcode_filename'])
 
     return True
 
 
-def extract_frames():
+def extract_frames(filename, output_directory, start_time, interval, frames, height, width, rough=False):
+    """Extract individual frames for processing.
+
+    Arguments:
+    filename -- file from which to extract frames
+    output_directory -- directory to store frames
+    start_time -- start time for capturing frames
+    interval -- interval between frames
+    frames -- number of frames to capture
+    width -- width of each frame to capture
+    height -- height of each frame to capture
+    rough -- disable unicolor vertical lines (default: False)
+    """
 
     scale = []
-    if not SETTINGS['rough']:
+    if not rough:
         scale.append('scale=1:1')
-    scale.append('scale={framewidth}:{height}'.format(**SETTINGS))
+    scale.append('scale={0}:{1}'.format(width, height))
 
-    print('Extracting {frames} frames from {filename} to {temp} with a {interval:.02f} second interval'.format(**SETTINGS))
-    for i in progressbar.progressbar(range(SETTINGS['frames'])):
-        capture_time = SETTINGS['start'] + ((i + 1) * SETTINGS['interval'])
+    print('Extracting {0} frames from {1} to {2} with a {3:.02f} second interval'.format(
+        frames, filename, output_directory, interval))
+    for i in progressbar.progressbar(range(frames)):
+        capture_time = start_time + ((i + 1) * interval)
 
         command = [
             'ffmpeg',
             '-ss', str(capture_time),
-            '-i', '{filename}'.format(**SETTINGS),
-            '-vf', 'format=yuvj444p,{}'.format(','.join(scale)),
+            '-i', filename,
+            '-vf', 'format=yuvj444p,{0}'.format(','.join(scale)),
             '-vframes', '1',
             '-y',
             '-loglevel', 'fatal',
-            os.path.join(SETTINGS['temp'], 'frame{:05d}.png'.format(i))
+            os.path.join(output_directory, 'frame{0:05d}.png'.format(i))
         ]
         subprocess.call(command)
 
