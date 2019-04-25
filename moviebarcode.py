@@ -201,7 +201,8 @@ if __name__ == "__main__":
         help='height of barcode (default: %(default)s)',
         default=1875,
         metavar='PIXELS',
-        type=int)
+        type=int
+    )
     PARSER.add_argument(
         '--interactive',
         help='prompt for each file\'s new title (default: %(default)s)',
