@@ -87,20 +87,36 @@ def extract_frames(filename, frame_directory, start_time, interval, frames, heig
         frames, filename, frame_directory, interval))
     for i in progressbar.progressbar(range(frames)):
         capture_time = start_time + ((i + 1) * interval)
-
-        command = [
-            'ffmpeg',
-            '-ss', str(capture_time),
-            '-i', filename,
-            '-vf', 'format=yuvj444p,{0}'.format(','.join(scale)),
-            '-vframes', '1',
-            '-y',
-            '-loglevel', 'fatal',
-            os.path.join(frame_directory, 'frame{0:05d}.png'.format(i))
-        ]
-        subprocess.call(command)
+        extract_single_frame(filename, frame_directory, 'frame{0:05d}.png'.format(i), capture_time, scale)
 
     return None
+
+
+def extract_single_frame(filename, frame_directory, frame_filename, capture_time, scale=[]):
+    """Extract individual frames for processing.
+
+    Arguments:
+    filename -- file from which to extract frame
+    frame_directory -- directory to store frame
+    frame_filename -- filename for frame
+    capture_time -- start time for capturing frame
+    scale -- scaling to use (default: None)
+    """
+
+    command = [
+        'ffmpeg',
+        '-ss', str(capture_time),
+        '-i', filename,
+        '-vf', 'format=yuvj444p,{0}'.format(','.join(scale)),
+        '-vframes', '1',
+        '-y',
+        '-loglevel', 'fatal',
+        os.path.join(frame_directory, frame_filename)
+    ]
+    subprocess.call(command)
+
+    return None
+
 
 
 def combine_frames(input_directory, output_filename):
