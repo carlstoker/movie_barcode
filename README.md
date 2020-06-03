@@ -9,5 +9,6 @@ Requirements:
 
 Usage:
 ------
-./moviebarcode.py input.mkv
-
+```shell
+python moviebarcode.py <FILENAME>
+```
