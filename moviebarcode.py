@@ -47,21 +47,18 @@ def generate_barcode(filename, output_directory, start_time, duration, height, w
 
     if not overwrite and os.path.isfile(barcode_filename):
         print('Barcode exists. Skipping {0}'.format(filename))
-        return False
-
-    extract_frames(
-        filename,
-        frame_directory,
-        start_time,
-        interval,
-        frames,
-        height,
-        framewidth,
-        rough
-    )
-    combine_frames(frame_directory, barcode_filename)
-
-    return True
+    else:
+        extract_frames(
+            filename,
+            frame_directory,
+            start_time,
+            interval,
+            frames,
+            height,
+            framewidth,
+            rough
+        )
+        combine_frames(frame_directory, barcode_filename)
 
 
 def extract_frames(filename, frame_directory, start_time, interval, frames, height, width, rough=False):
@@ -89,10 +86,8 @@ def extract_frames(filename, frame_directory, start_time, interval, frames, heig
         capture_time = start_time + ((i + 1) * interval)
         extract_single_frame(filename, frame_directory, 'frame{0:05d}.png'.format(i), capture_time, scale)
 
-    return None
 
-
-def extract_single_frame(filename, frame_directory, frame_filename, capture_time, scale=[]):
+def extract_single_frame(filename, frame_directory, frame_filename, capture_time, scale=None):
     """Extract individual frames for processing.
 
     Arguments:
@@ -102,6 +97,9 @@ def extract_single_frame(filename, frame_directory, frame_filename, capture_time
     capture_time -- start time for capturing frame
     scale -- scaling to use (default: None)
     """
+
+    if not scale:
+        scale = []
 
     command = [
         'ffmpeg',
@@ -114,9 +112,6 @@ def extract_single_frame(filename, frame_directory, frame_filename, capture_time
         os.path.join(frame_directory, frame_filename)
     ]
     subprocess.call(command)
-
-    return None
-
 
 
 def combine_frames(input_directory, output_filename):
@@ -139,8 +134,6 @@ def combine_frames(input_directory, output_filename):
     subprocess.call(command, cwd=input_directory)
 
     shutil.move(os.path.join(input_directory, 'montage.png'), output_filename)
-
-    return None
 
 
 def get_metadata(filename, keys):
